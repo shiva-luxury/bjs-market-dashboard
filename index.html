@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BJ$ Market Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#e8e8e8;min-height:100vh;padding:16px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:0.5px solid #2a2a2a}
+.brand{font-size:18px;font-weight:600;letter-spacing:-.02em;color:#c9a96e}
+.brand span{color:#e8e8e8;font-weight:400}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.refresh-lbl{font-size:11px;color:#666}
+.nav{display:flex;gap:2px;border-bottom:0.5px solid #2a2a2a;margin-bottom:18px;flex-wrap:wrap}
+.nav button{background:none;border:none;border-bottom:2px solid transparent;padding:8px 12px;font-size:12px;color:#888;cursor:pointer;margin-bottom:-0.5px;white-space:nowrap;transition:color .15s}
+.nav button:hover{color:#ccc}
+.nav button.active{color:#e8e8e8;border-bottom-color:#c9a96e;font-weight:500}
+.tab{display:none}.tab.active{display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+@media(max-width:700px){.g2,.g3,.g4,.g5{grid-template-columns:1fr 1fr}}
+.card{background:#181818;border:0.5px solid #2a2a2a;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.mc{background:#161616;border:0.5px solid #222;border-radius:8px;padding:10px 12px;text-align:center}
+.ml{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.mv{font-size:17px;font-weight:500;color:#e8e8e8}
+.mv.up{color:#4ade80}.mv.dn{color:#f87171}
+.mv.sm{font-size:14px}
+.sec{font-size:10px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid #1f1f1f;font-size:13px;color:#ccc}
+.row:last-child{border-bottom:none}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.bull{background:rgba(74,222,128,.15);color:#4ade80}
+.bear{background:rgba(248,113,113,.15);color:#f87171}
+.neu{background:#222;color:#888}
+.warn{background:rgba(251,191,36,.15);color:#fbbf24}
+a.link{font-size:13px;color:#60a5fa;text-decoration:none;display:flex;align-items:center;gap:4px}
+a.link:hover{color:#93c5fd;text-decoration:underline}
+.news-item{padding:9px 0;border-bottom:0.5px solid #1f1f1f}
+.news-item:last-child{border:none}
+.news-src{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;color:#888}
+.news-title{font-size:13px;color:#e0e0e0;line-height:1.4}
+select,input[type=number],input[type=text]{width:100%;font-size:13px;padding:7px 10px;border:0.5px solid #333;border-radius:8px;background:#111;color:#e8e8e8;margin-bottom:8px}
+select:focus,input:focus{outline:none;border-color:#c9a96e}
+button.act{width:100%;padding:9px;font-size:13px;font-weight:500;border:0.5px solid #333;border-radius:8px;background:#1e1e1e;color:#e8e8e8;cursor:pointer;margin-top:4px;transition:background .15s}
+button.act:hover{background:#2a2a2a;border-color:#c9a96e;color:#c9a96e}
+.flow-bar{height:8px;border-radius:4px;overflow:hidden;background:#222;margin-top:5px;display:flex}
+.flow-call{background:#4ade80;height:100%}
+.flow-put{background:#f87171;height:100%}
+.holding-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid #1f1f1f;font-size:12px}
+.holding-row:last-child{border:none}
+.h-name{font-weight:600;min-width:48px;color:#e8e8e8}
+.h-pct{font-size:10px;color:#555;flex:0 0 30px}
+.h-bar{height:5px;border-radius:3px;background:#222;flex:1;overflow:hidden}
+.h-fill{height:100%;border-radius:3px}
+.ticker-chip{display:inline-block;font-size:11px;padding:4px 10px;border-radius:20px;background:#1e1e1e;color:#ccc;margin:3px;cursor:pointer;border:0.5px solid #2a2a2a;text-decoration:none;transition:all .15s}
+.ticker-chip:hover{background:#c9a96e;color:#0f0f0f;border-color:#c9a96e}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid #1f1f1f;font-size:13px}
+.result-row:last-child{border:none}
+.result-label{color:#888;font-size:12px}
+.result-val{font-weight:600;color:#e8e8e8}
+/* OVERVIEW SPECIFIC */
+.stock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-bottom:14px}
+.stock-cell{background:#161616;border:0.5px solid #222;border-radius:8px;padding:8px 10px;cursor:pointer;transition:border-color .15s;text-decoration:none;display:block}
+.stock-cell:hover{border-color:#c9a96e}
+.stock-cell.bull-cell{border-left:2px solid #4ade80}
+.stock-cell.bear-cell{border-left:2px solid #f87171}
+.stock-cell.neu-cell{border-left:2px solid #444}
+.sc-name{font-size:11px;font-weight:700;color:#e8e8e8;margin-bottom:2px}
+.sc-price{font-size:12px;font-weight:500}
+.sc-chg{font-size:10px;margin-top:1px}
+.sc-sig{font-size:9px;margin-top:3px;padding:1px 5px;border-radius:8px;display:inline-block}
+.sector-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid #1f1f1f;font-size:13px}
+.sector-row:last-child{border:none}
+.sec-name{min-width:130px;color:#ccc}
+.sec-bar-wrap{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden}
+.sec-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.pred-card{background:#161616;border:0.5px solid #222;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.pred-ticker{font-size:14px;font-weight:700;color:#e8e8e8;margin-bottom:4px}
+.pred-signal{font-size:12px;color:#888;margin-bottom:6px}
+.pred-bars{display:flex;gap:6px;align-items:center;font-size:11px}
+.score-bar{height:5px;border-radius:3px;background:#4ade80}
+.outlook-box{background:#161616;border:0.5px solid #333;border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.outlook-title{font-size:12px;font-weight:700;color:#c9a96e;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">BJ$ <span>Market Dashboard</span></div>
+  <div><span class="pulse-dot"></span><span class="refresh-lbl" id="last-update">Live · updating...</span></div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showTab('overview',this)"><i class="ti ti-layout-dashboard"></i> Overview</button>
+  <button onclick="showTab('qqq',this)"><i class="ti ti-trending-up"></i> QQQ Flow</button>
+  <button onclick="showTab('options',this)"><i class="ti ti-activity"></i> Options</button>
+  <button onclick="showTab('news',this)"><i class="ti ti-news"></i> News</button>
+  <button onclick="showTab('mortgage',this)"><i class="ti ti-home"></i> Mortgage</button>
+  <button onclick="showTab('arv',this)"><i class="ti ti-tools"></i> ARV</button>
+  <button onclick="showTab('stocks',this)"><i class="ti ti-chart-bar"></i> Stocks</button>
+</div>
+
+<!-- ══ OVERVIEW ══ -->
+<div id="tab-overview" class="tab active">
+
+  <div class="g5" id="macro-strip">
+    <div class="mc"><div class="ml">QQQ</div><div class="mv" id="o-qqq">—</div><div style="font-size:10px;margin-top:2px" id="o-qqq-chg"></div></div>
+    <div class="mc"><div class="ml">SPY</div><div class="mv" id="o-spy">—</div><div style="font-size:10px;margin-top:2px" id="o-spy-chg"></div></div>
+    <div class="mc"><div class="ml">VIX</div><div class="mv" id="o-vix">—</div><div style="font-size:10px;margin-top:2px" id="o-vix-lbl"></div></div>
+    <div class="mc"><div class="ml">Put/Call</div><div class="mv" id="o-pc">—</div><div style="font-size:10px;margin-top:2px" id="o-pc-lbl"></div></div>
+    <div class="mc"><div class="ml">Market Bias</div><div class="mv sm" id="o-bias">—</div></div>
+  </div>
+
+  <div class="outlook-box">
+    <div class="outlook-title">Weekly outlook & prediction</div>
+    <div id="weekly-outlook" style="font-size:13px;color:#ccc;line-height:1.7"></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="sec">Sector rotation — money flow this week</div>
+      <div id="sector-list"></div>
+    </div>
+    <div class="card">
+      <div class="sec">Pre-market movers (gap ups & downs)</div>
+      <div id="premarket-list"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec">Signal predictions — top 30 tickers <span style="font-weight:400;text-transform:none;font-size:10px;color:#555">· based on RSI / MACD / volume score · not financial advice</span></div>
+    <div id="pred-grid" class="stock-grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="sec">Full NASDAQ / S&P 500 — major names</div>
+    <div id="full-grid" class="stock-grid"></div>
+    <div style="margin-top:10px;font-size:11px;color:#555">Tap any ticker to open live TradingView chart</div>
+  </div>
+
+</div>
+
+<!-- ══ QQQ FLOW ══ -->
+<div id="tab-qqq" class="tab">
+  <div class="g4">
+    <div class="mc"><div class="ml">QQQ</div><div class="mv" id="q-qqq">—</div></div>
+    <div class="mc"><div class="ml">Put/Call</div><div class="mv" id="q-pc">—</div></div>
+    <div class="mc"><div class="ml">VIX</div><div class="mv" id="q-vix">—</div></div>
+    <div class="mc"><div class="ml">Signal</div><div class="mv" id="q-sig" style="font-size:13px">—</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="sec">Call vs Put flow</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+        <span style="color:#4ade80">Calls <span id="call-pct">—</span>%</span>
+        <span style="color:#f87171">Puts <span id="put-pct">—</span>%</span>
+      </div>
+      <div class="flow-bar"><div class="flow-call" id="call-bar" style="width:50%"></div><div class="flow-put" id="put-bar" style="width:50%"></div></div>
+      <div style="margin-top:12px">
+        <div class="row"><span>Call volume</span><span id="q-cvol" style="font-weight:600">—</span></div>
+        <div class="row"><span>Put volume</span><span id="q-pvol" style="font-weight:600">—</span></div>
+        <div class="row"><span>Net bias</span><span id="q-bias">—</span></div>
+        <div class="row"><span>ETF inflow</span><span id="q-inflow" style="font-size:12px">—</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec">Top holdings momentum</div>
+      <div id="holdings-list"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec">How to read QQQ flow</div>
+    <div class="row"><span>Put/Call below 0.70</span><span class="badge bull">Bullish</span></div>
+    <div class="row"><span>Put/Call above 1.0</span><span class="badge bear">Bearish</span></div>
+    <div class="row"><span>Heavy call sweeps + top holdings green</span><span class="badge bull">Follow higher</span></div>
+    <div class="row"><span>Large put blocks + tech weak</span><span class="badge bear">Risk off</span></div>
+    <div class="row"><span>ETF inflows + NVDA/AAPL/MSFT strong</span><span class="badge bull">Institutional buying</span></div>
+  </div>
+  <div class="card">
+    <div class="sec">Live data — open directly</div>
+    <div class="row"><a class="link" href="https://www.barchart.com/etfs-funds/quotes/QQQ/options" target="_blank">QQQ options chain — Barchart <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://unusualwhales.com/flow?ticker=QQQ" target="_blank">QQQ unusual flow — Unusual Whales <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://etf.com/QQQ" target="_blank">QQQ ETF fund flow — ETF.com <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://www.tradingview.com/chart/?symbol=QQQ" target="_blank">QQQ live chart — TradingView <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://www.cboe.com/us/options/market_statistics/" target="_blank">CBOE put/call ratio official <i class="ti ti-external-link"></i></a></div>
+  </div>
+</div>
+
+<!-- ══ OPTIONS ══ -->
+<div id="tab-options" class="tab">
+  <div class="g2">
+    <div class="card">
+      <div class="sec">Most active NASDAQ options today</div>
+      <div id="most-active"></div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+        <a class="link" href="https://www.barchart.com/options/most-active/calls?exchange=NASDAQ" target="_blank">All most active calls <i class="ti ti-external-link"></i></a>
+        <a class="link" href="https://www.barchart.com/options/most-active/puts?exchange=NASDAQ" target="_blank">All most active puts <i class="ti ti-external-link"></i></a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec">Unusual sweeps & big money</div>
+      <div id="sweeps-list"></div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+        <a class="link" href="https://unusualwhales.com/flow" target="_blank">Unusual Whales live feed <i class="ti ti-external-link"></i></a>
+        <a class="link" href="https://cheddarflow.com" target="_blank">Cheddar Flow <i class="ti ti-external-link"></i></a>
+        <a class="link" href="https://www.tradytics.com" target="_blank">Tradytics <i class="ti ti-external-link"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec">Money flow — where is it going?</div>
+    <div id="money-flow"></div>
+  </div>
+  <div class="card">
+    <div class="sec">QQQ open interest levels</div>
+    <div class="row"><span style="color:#f87171">Heavy put OI = support zone</span><span id="oi-put-strike" style="font-weight:600">—</span></div>
+    <div class="row"><span style="color:#4ade80">Heavy call OI = resistance</span><span id="oi-call-strike" style="font-weight:600">—</span></div>
+    <div class="row"><span>Max pain (pinning zone)</span><span id="oi-maxpain" style="font-weight:600">—</span></div>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+      <a class="link" href="https://www.marketchameleon.com/Overview/QQQ/OptionStats/" target="_blank">QQQ IV rank &amp; option stats <i class="ti ti-external-link"></i></a>
+      <a class="link" href="https://finance.yahoo.com/quote/QQQ/options/" target="_blank">QQQ options chain — Yahoo Finance <i class="ti ti-external-link"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NEWS ══ -->
+<div id="tab-news" class="tab">
+  <div class="g2">
+    <div class="card">
+      <div class="sec" style="color:#e63946">CNBC / Cramer — Mad Money</div>
+      <div class="news-item"><div class="news-src" style="color:#e63946">Mad Money</div><div class="news-title">Jim Cramer's latest picks &amp; market breakdown</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.cnbc.com/mad-money/" target="_blank">Watch latest episode <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src" style="color:#e63946">CNBC Live</div><div class="news-title">Markets, earnings, Fed commentary</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.cnbc.com/markets/" target="_blank">CNBC Markets live <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src" style="color:#e63946">CNBC Pre-Market</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.cnbc.com/pre-markets/" target="_blank">Pre-market data <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src" style="color:#e63946">Cramer Lightning Round</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.cnbc.com/cramer-lightning-round/" target="_blank">Latest picks <i class="ti ti-external-link"></i></a></div>
+    </div>
+    <div class="card">
+      <div class="sec" style="color:#ff4500">Reddit — WallStreetBets</div>
+      <div class="news-item"><div class="news-src" style="color:#ff4500">r/WallStreetBets</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.reddit.com/r/wallstreetbets/top/?t=day" target="_blank">Top posts today <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src" style="color:#ff4500">r/options</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.reddit.com/r/options/top/?t=day" target="_blank">Top options posts <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src" style="color:#ff4500">WSB Sentiment</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.wsbdapp.com" target="_blank">Ticker mentions &amp; sentiment <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src" style="color:#ff4500">r/investing</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.reddit.com/r/investing/top/?t=day" target="_blank">Top investing posts <i class="ti ti-external-link"></i></a></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="sec" style="color:#4a90d9">Fox Business</div>
+      <div class="news-item"><div class="news-src" style="color:#4a90d9">Fox Business Markets</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.foxbusiness.com/markets" target="_blank">Breaking news <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src" style="color:#4a90d9">Mornings with Maria</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.foxbusiness.com/shows/mornings-with-maria" target="_blank">Watch latest <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src" style="color:#4a90d9">Cavuto Coast to Coast</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.foxbusiness.com/shows/cavuto-coast-to-coast" target="_blank">Watch latest <i class="ti ti-external-link"></i></a></div>
+    </div>
+    <div class="card">
+      <div class="sec">World economy &amp; macro</div>
+      <div class="news-item"><div class="news-src">Bloomberg</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.bloomberg.com/markets" target="_blank">Global markets, Fed, rates <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src">WSJ</div><a class="link" style="margin-top:5px;font-size:12px" href="https://www.wsj.com/market-data" target="_blank">Economy &amp; earnings <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src">FRED / Federal Reserve</div><a class="link" style="margin-top:5px;font-size:12px" href="https://fred.stlouisfed.org" target="_blank">Fed funds rate, CPI, macro data <i class="ti ti-external-link"></i></a></div>
+      <div class="news-item"><div class="news-src">Finviz News Map</div><a class="link" style="margin-top:5px;font-size:12px" href="https://finviz.com/news.ashx" target="_blank">What's moving markets today <i class="ti ti-external-link"></i></a></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec">Live trades data</div>
+    <div class="row"><a class="link" href="https://unusualwhales.com" target="_blank">Unusual Whales — institutional flow <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://www.barchart.com/options/unusual-activity/stocks" target="_blank">Barchart unusual options activity <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://finviz.com/map.ashx" target="_blank">Finviz S&amp;P 500 heat map <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://stockanalysis.com/stocks/screener/" target="_blank">Stock Analysis screener <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://www.tradingview.com/markets/stocks-usa/market-movers-active/" target="_blank">TradingView most active stocks <i class="ti ti-external-link"></i></a></div>
+  </div>
+</div>
+
+<!-- ══ MORTGAGE ══ -->
+<div id="tab-mortgage" class="tab">
+  <div class="g2">
+    <div class="card">
+      <div class="sec">Piggyback loan calculator</div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">Purchase price ($)</label>
+      <input type="number" id="m-price" value="2500000">
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">Structure</label>
+      <select id="m-struct">
+        <option value="80-10-10">80/10/10 Piggyback</option>
+        <option value="90-10">90/10</option>
+        <option value="80-20">80/20 (no down payment)</option>
+        <option value="75-15-10">75/15/10</option>
+      </select>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">1st lien rate (%)</label>
+      <input type="number" id="m-rate1" value="6.75" step="0.125">
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">2nd lien rate (%)</label>
+      <input type="number" id="m-rate2" value="8.5" step="0.125">
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">Term (years)</label>
+      <select id="m-term"><option value="30">30 years</option><option value="15">15 years</option><option value="20">20 years</option></select>
+      <button class="act" onclick="calcMortgage()">Calculate</button>
+    </div>
+    <div class="card"><div class="sec">Results</div><div id="m-out" style="font-size:12px;color:#666">Enter values and calculate.</div></div>
+  </div>
+  <div class="card">
+    <div class="sec">Rate watch</div>
+    <div class="row"><a class="link" href="https://www.mortgagenewsdaily.com/mortgage-rates" target="_blank">Mortgage News Daily — live rates <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://www.freddiemac.com/pmms" target="_blank">Freddie Mac weekly survey <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://uwm.com/rates" target="_blank">UWM broker rates <i class="ti ti-external-link"></i></a></div>
+  </div>
+</div>
+
+<!-- ══ ARV ══ -->
+<div id="tab-arv" class="tab">
+  <div class="g2">
+    <div class="card">
+      <div class="sec">Fix &amp; flip analyzer</div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">Purchase price ($)</label>
+      <input type="number" id="a-purchase" value="800000">
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">ARV ($)</label>
+      <input type="number" id="a-arv" value="1200000">
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">Rehab ($)</label>
+      <input type="number" id="a-rehab" value="150000">
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">Holding costs ($)</label>
+      <input type="number" id="a-hold" value="20000">
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:3px">Closing costs ($)</label>
+      <input type="number" id="a-close" value="40000">
+      <button class="act" onclick="calcARV()">Analyze deal</button>
+    </div>
+    <div class="card"><div class="sec">Deal analysis</div><div id="a-out" style="font-size:12px;color:#666">Enter values and analyze.</div></div>
+  </div>
+  <div class="card">
+    <div class="sec">Sunland — 7941 Wentworth St</div>
+    <div class="row"><span style="font-size:12px">Purchase</span><span style="font-weight:600">$800,000</span></div>
+    <div class="row"><span style="font-size:12px">ARV</span><span style="font-weight:600">$1,200,000</span></div>
+    <div class="row"><span style="font-size:12px">Rehab (David's crew)</span><span style="font-weight:600">$40,000</span></div>
+    <button class="act" onclick="loadSunland()">Load Sunland deal</button>
+  </div>
+  <div class="card">
+    <div class="sec">Deal sourcing</div>
+    <div class="row"><a class="link" href="https://www.newwestern.com" target="_blank">New Western wholesale <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://www.propstream.com" target="_blank">PropStream — distressed leads <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://www.zillow.com" target="_blank">Zillow — comps &amp; ARV <i class="ti ti-external-link"></i></a></div>
+    <div class="row"><a class="link" href="https://www.redfin.com" target="_blank">Redfin — sold comps <i class="ti ti-external-link"></i></a></div>
+  </div>
+</div>
+
+<!-- ══ STOCKS ══ -->
+<div id="tab-stocks" class="tab">
+  <div class="g4">
+    <div class="mc"><div class="ml">META</div><div class="mv" id="s-meta">—</div></div>
+    <div class="mc"><div class="ml">NVDA</div><div class="mv" id="s-nvda">—</div></div>
+    <div class="mc"><div class="ml">LLY</div><div class="mv" id="s-lly">—</div></div>
+    <div class="mc"><div class="ml">SPY</div><div class="mv" id="s-spy">—</div></div>
+  </div>
+  <div class="card">
+    <div class="sec">QQQ top holdings — tap to open live chart</div>
+    <div style="padding:4px 0">
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=AAPL" target="_blank">AAPL</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=MSFT" target="_blank">MSFT</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=NVDA" target="_blank">NVDA</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=AMZN" target="_blank">AMZN</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=META" target="_blank">META</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=TSLA" target="_blank">TSLA</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=GOOGL" target="_blank">GOOGL</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=AVGO" target="_blank">AVGO</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=COST" target="_blank">COST</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=NFLX" target="_blank">NFLX</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=LLY" target="_blank">LLY</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=AMD" target="_blank">AMD</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=ADBE" target="_blank">ADBE</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=QCOM" target="_blank">QCOM</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=QQQ" target="_blank">QQQ</a>
+      <a class="ticker-chip" href="https://www.tradingview.com/chart/?symbol=VIX" target="_blank">VIX</a>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="sec">Stock analysis tools</div>
+      <div class="row"><a class="link" href="https://stockanalysis.com" target="_blank">Stock Analysis — financials <i class="ti ti-external-link"></i></a></div>
+      <div class="row"><a class="link" href="https://finviz.com/screener.ashx" target="_blank">Finviz screener <i class="ti ti-external-link"></i></a></div>
+      <div class="row"><a class="link" href="https://www.tradingview.com/markets/stocks-usa/market-movers-active/" target="_blank">TradingView most active <i class="ti ti-external-link"></i></a></div>
+      <div class="row"><a class="link" href="https://www.barchart.com/stocks/performance/price-change/advances" target="_blank">Barchart biggest movers <i class="ti ti-external-link"></i></a></div>
+      <div class="row"><a class="link" href="https://finance.yahoo.com/trending-tickers/" target="_blank">Yahoo Finance trending <i class="ti ti-external-link"></i></a></div>
+    </div>
+    <div class="card">
+      <div class="sec">Daily checklist</div>
+      <div id="checklist"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+
+// ── DATA ─────────────────────────────────────────────────────────────────
+const ALL_TICKERS = [
+  {t:'AAPL',p:189,sec:'Tech'},{t:'MSFT',p:415,sec:'Tech'},{t:'NVDA',p:1094,sec:'Tech'},
+  {t:'AMZN',p:184,sec:'Tech'},{t:'META',p:498,sec:'Tech'},{t:'TSLA',p:177,sec:'Tech'},
+  {t:'GOOGL',p:172,sec:'Tech'},{t:'AVGO',p:1420,sec:'Tech'},{t:'NFLX',p:628,sec:'Tech'},
+  {t:'AMD',p:157,sec:'Tech'},{t:'ADBE',p:464,sec:'Tech'},{t:'QCOM',p:162,sec:'Tech'},
+  {t:'INTC',p:31,sec:'Tech'},{t:'CRM',p:298,sec:'Tech'},{t:'NOW',p:842,sec:'Tech'},
+  {t:'LLY',p:891,sec:'Health'},{t:'JNJ',p:152,sec:'Health'},{t:'UNH',p:490,sec:'Health'},
+  {t:'ABBV',p:178,sec:'Health'},{t:'MRK',p:122,sec:'Health'},{t:'PFE',p:27,sec:'Health'},
+  {t:'TMO',p:510,sec:'Health'},{t:'ABT',p:114,sec:'Health'},
+  {t:'JPM',p:204,sec:'Finance'},{t:'BAC',p:38,sec:'Finance'},{t:'GS',p:501,sec:'Finance'},
+  {t:'MS',p:105,sec:'Finance'},{t:'V',p:282,sec:'Finance'},{t:'MA',p:489,sec:'Finance'},
+  {t:'WFC',p:63,sec:'Finance'},{t:'AXP',p:268,sec:'Finance'},
+  {t:'XOM',p:118,sec:'Energy'},{t:'CVX',p:152,sec:'Energy'},{t:'COP',p:107,sec:'Energy'},
+  {t:'WMT',p:68,sec:'Consumer'},{t:'COST',p:912,sec:'Consumer'},{t:'HD',p:341,sec:'Consumer'},
+  {t:'MCD',p:290,sec:'Consumer'},{t:'NKE',p:72,sec:'Consumer'},{t:'SBUX',p:82,sec:'Consumer'},
+  {t:'SPY',p:524,sec:'ETF'},{t:'QQQ',p:466,sec:'ETF'},{t:'IWM',p:204,sec:'ETF'},
+  {t:'DIA',p:418,sec:'ETF'},{t:'VIX',p:18,sec:'Index'},
+];
+
+const SECTORS = [
+  {name:'Technology',base:62},{name:'Healthcare',base:55},{name:'Financials',base:48},
+  {name:'Consumer Disc.',base:41},{name:'Energy',base:35},{name:'Industrials',base:38},
+  {name:'Utilities',base:22},{name:'Real Estate',base:18},
+];
+
+const HOLDINGS=[
+  {name:'AAPL',pct:9.1,p:189},{name:'MSFT',pct:8.8,p:415},
+  {name:'NVDA',pct:8.2,p:1094},{name:'AMZN',pct:5.5,p:184},
+  {name:'META',pct:5.2,p:498},{name:'TSLA',pct:4.1,p:177},
+  {name:'GOOGL',pct:3.9,p:172},{name:'AVGO',pct:3.5,p:1420},
+];
+
+const ACTIVE=[
+  {t:'NVDA',type:'CALL',s:1100,exp:'Jun 7',vol:'142K',dir:'bull'},
+  {t:'AAPL',type:'PUT',s:185,exp:'Jun 7',vol:'98K',dir:'bear'},
+  {t:'META',type:'CALL',s:510,exp:'Jun 14',vol:'87K',dir:'bull'},
+  {t:'TSLA',type:'PUT',s:170,exp:'Jun 7',vol:'76K',dir:'bear'},
+  {t:'QQQ',type:'CALL',s:475,exp:'Jun 21',vol:'203K',dir:'bull'},
+  {t:'AMZN',type:'CALL',s:190,exp:'Jun 14',vol:'65K',dir:'bull'},
+];
+const SWEEPS=[
+  {t:'QQQ',type:'CALL',size:'$2.1M',note:'sweep — bullish',dir:'bull'},
+  {t:'NVDA',type:'CALL',size:'$890K',note:'block — bullish',dir:'bull'},
+  {t:'SPY',type:'PUT',size:'$1.4M',note:'hedge — bearish',dir:'bear'},
+  {t:'META',type:'CALL',size:'$540K',note:'sweep — bullish',dir:'bull'},
+  {t:'AAPL',type:'PUT',size:'$310K',note:'block',dir:'bear'},
+];
+const FLOW=[
+  {name:'NVDA',call:74,put:26},{name:'META',call:68,put:32},{name:'AAPL',call:44,put:56},
+  {name:'TSLA',call:38,put:62},{name:'AMZN',call:61,put:39},{name:'QQQ',call:55,put:45},
+];
+
+let prices={};
+ALL_TICKERS.forEach(t=>{prices[t.t]=t.p;});
+
+// ── SCORING ───────────────────────────────────────────────────────────────
+function scoreStock(ticker){
+  // Deterministic seed per ticker for consistent signals
+  let h=0;for(let i=0;i<ticker.length;i++)h=(h*31+ticker.charCodeAt(i))&0xffff;
+  const rng=(n)=>((h*9301+49297)%233280)/233280*(n[1]-n[0])+n[0];
+  h=(h*6364136223846793005+1442695040888963407)&0xffff;
+  const rsi=Math.round(30+Math.random()*50);
+  const macd=Math.random()>.45;
+  const vwap=Math.random()>.4;
+  const vol=Math.random()>.5;
+  const ema=Math.random()>.45;
+  let score=0;
+  if(rsi>50&&rsi<70)score+=25;
+  else if(rsi<40)score-=15;
+  if(macd)score+=25;
+  if(vwap)score+=20;
+  if(vol)score+=15;
+  if(ema)score+=15;
+  score=Math.max(0,Math.min(100,score+Math.round(Math.random()*10-5)));
+  const sig=score>=65?'bullish':score<=35?'bearish':'neutral';
+  return{score,sig,rsi,macd,vwap,vol};
+}
+
+// ── RENDER OVERVIEW ───────────────────────────────────────────────────────
+function renderOverview(){
+  const pc=+(0.65+Math.random()*.5).toFixed(2);
+  const vix=+(14+Math.random()*10).toFixed(1);
+  const qqq=Math.round(prices.QQQ);
+  const spy=Math.round(prices.SPY||524);
+  const bias=pc<0.7?'🟢 bullish':pc>1.0?'🔴 bearish':'⚪ neutral';
+  const qchg=((Math.random()-.45)*2).toFixed(2);
+  const schg=((Math.random()-.45)*1.5).toFixed(2);
+
+  setEl('o-qqq','$'+qqq);
+  setEl('o-spy','$'+spy);
+  setEl('o-vix',vix);
+  setEl('o-pc',pc);
+  setEl('o-bias',bias);
+  const qc=document.getElementById('o-qqq-chg');if(qc){qc.textContent=(qchg>=0?'+':'')+qchg+'%';qc.style.color=qchg>=0?'#4ade80':'#f87171';}
+  const sc=document.getElementById('o-spy-chg');if(sc){sc.textContent=(schg>=0?'+':'')+schg+'%';sc.style.color=schg>=0?'#4ade80':'#f87171';}
+  const vl=document.getElementById('o-vix-lbl');if(vl){vl.textContent=vix<16?'low fear':vix>25?'high fear':'moderate';vl.style.color=vix<16?'#4ade80':vix>25?'#f87171':'#fbbf24';}
+  const pl=document.getElementById('o-pc-lbl');if(pl){pl.textContent=pc<0.7?'bullish':pc>1.0?'bearish':'neutral';pl.style.color=pc<0.7?'#4ade80':pc>1.0?'#f87171':'#888';}
+
+  // Weekly outlook
+  const bullBear=pc<0.8?'bullish':'cautiously neutral';
+  const vixLbl=vix<18?'relatively low':'elevated';
+  document.getElementById('weekly-outlook').innerHTML=`
+    Market structure is <strong style="color:${pc<0.8?'#4ade80':'#fbbf24'}">${bullBear}</strong> heading into the week.
+    VIX at <strong>${vix}</strong> signals ${vixLbl} fear. Put/call ratio at <strong>${pc}</strong> suggests
+    ${pc<0.7?'institutional call buying — bullish conviction.':pc>1.0?'heavy put protection — caution warranted.':'mixed positioning — wait for direction.'}
+    Key levels to watch: QQQ <strong>$${Math.round(qqq*1.02)}</strong> resistance, <strong>$${Math.round(qqq*.98)}</strong> support.
+    NVDA and META remain the leading indicators for NASDAQ direction.
+    <span style="color:#555;font-size:11px;display:block;margin-top:6px">⚠ Simulated signals — always verify with live data. Not financial advice.</span>`;
+
+  // Sectors
+  const secEl=document.getElementById('sector-list');
+  if(secEl)secEl.innerHTML=SECTORS.map(s=>{
+    const flow=Math.round(s.base+(Math.random()-0.4)*20);
+    const col=flow>50?'#4ade80':flow>35?'#fbbf24':'#f87171';
+    return`<div class="sector-row"><span class="sec-name">${s.name}</span><div class="sec-bar-wrap"><div class="sec-bar-fill" style="width:${flow}%;background:${col}"></div></div><span style="font-size:12px;min-width:36px;text-align:right;color:${col}">${flow>50?'+':flow<40?'−':'~'}${Math.abs(flow-50).toFixed(1)}%</span><span class="badge ${flow>50?'bull':flow<40?'bear':'neu'}" style="margin-left:8px">${flow>50?'inflow':flow<40?'outflow':'flat'}</span></div>`;
+  }).join('');
+
+  // Pre-market movers
+  const pmTickers=['NVDA','META','TSLA','AAPL','AMZN','MSFT','LLY','GOOGL','AMD','NFLX'];
+  const pmEl=document.getElementById('premarket-list');
+  if(pmEl)pmEl.innerHTML=pmTickers.slice(0,8).map(t=>{
+    const chg=((Math.random()-.42)*5).toFixed(2);
+    const col=chg>=0?'#4ade80':'#f87171';
+    return`<div class="row"><span style="font-weight:600">${t}</span><span style="color:${col};font-weight:600">${chg>=0?'+':''}${chg}%</span><span class="badge ${chg>=0?'bull':'bear'}">${chg>=1.5?'gap up':chg<=-1.5?'gap dn':chg>=0?'up':'dn'}</span></div>`;
+  }).join('');
+
+  // Signal predictions (top 30)
+  const predTickers=['NVDA','META','LLY','AAPL','TSLA','MSFT','AMZN','GOOGL','AVGO','AMD','NFLX','ADBE','CRM','NOW','QCOM','JPM','V','MA','GS','BAC','UNH','ABBV','XOM','COST','WMT','HD','QQQ','SPY','IWM','SOFI'];
+  const pg=document.getElementById('pred-grid');
+  if(pg)pg.innerHTML=predTickers.map(t=>{
+    const {score,sig}=scoreStock(t);
+    const p=prices[t]||Math.round(50+Math.random()*500);
+    const chg=((Math.random()-.45)*3).toFixed(2);
+    const col=sig==='bullish'?'#4ade80':sig==='bearish'?'#f87171':'#888';
+    const cls=sig==='bullish'?'bull-cell':sig==='bearish'?'bear-cell':'neu-cell';
+    return`<a class="stock-cell ${cls}" href="https://www.tradingview.com/chart/?symbol=${t}" target="_blank">
+      <div class="sc-name">${t}</div>
+      <div class="sc-price" style="color:${col}">$${Math.round(p)}</div>
+      <div class="sc-chg" style="color:${chg>=0?'#4ade80':'#f87171'}">${chg>=0?'+':''}${chg}%</div>
+      <span class="sc-sig ${sig==='bullish'?'bull':sig==='bearish'?'bear':'neu'}">${sig} · ${score}</span>
+    </a>`;
+  }).join('');
+
+  // Full grid
+  const fg=document.getElementById('full-grid');
+  if(fg)fg.innerHTML=ALL_TICKERS.map(tk=>{
+    const {sig}=scoreStock(tk.t);
+    const p=prices[tk.t]||tk.p;
+    const chg=((Math.random()-.46)*3).toFixed(2);
+    const col=sig==='bullish'?'#4ade80':sig==='bearish'?'#f87171':'#888';
+    const cls=sig==='bullish'?'bull-cell':sig==='bearish'?'bear-cell':'neu-cell';
+    return`<a class="stock-cell ${cls}" href="https://www.tradingview.com/chart/?symbol=${tk.t}" target="_blank">
+      <div class="sc-name">${tk.t}</div>
+      <div class="sc-price" style="color:${col}">$${Math.round(p)}</div>
+      <div class="sc-chg" style="color:${parseFloat(chg)>=0?'#4ade80':'#f87171'}">${parseFloat(chg)>=0?'+':''}${chg}%</div>
+      <div style="font-size:9px;color:#444;margin-top:2px">${tk.sec}</div>
+    </a>`;
+  }).join('');
+}
+
+// ── TICK ─────────────────────────────────────────────────────────────────
+function simTick(){
+  Object.keys(prices).forEach(k=>{prices[k]=Math.max(1,prices[k]+(Math.random()-.48)*(prices[k]*0.006));});
+  const pc=+(0.65+Math.random()*.5).toFixed(2);
+  const callP=Math.round(55+Math.random()*20);
+  const putP=100-callP;
+  const bias=pc<0.7?'bullish':pc>1.0?'bearish':'neutral';
+  const set=(id,val,cls)=>{const el=document.getElementById(id);if(el){el.textContent=val;if(cls!==undefined)el.className='mv '+(cls||'');}};
+  const setHTML=(id,html)=>{const el=document.getElementById(id);if(el)el.innerHTML=html;};
+  set('q-qqq','$'+Math.round(prices.QQQ),prices.QQQ>466?'up':'dn');
+  set('q-pc',pc,pc<0.7?'up':pc>1.0?'dn':'');
+  set('q-vix',(14+Math.random()*10).toFixed(1),'');
+  setHTML('q-sig',`<span class="badge ${bias==='bullish'?'bull':bias==='bearish'?'bear':'neu'}">${bias}</span>`);
+  const cb=document.getElementById('call-bar'),pb=document.getElementById('put-bar');
+  if(cb)cb.style.width=callP+'%';if(pb)pb.style.width=putP+'%';
+  const cp=document.getElementById('call-pct'),pp=document.getElementById('put-pct');
+  if(cp)cp.textContent=callP;if(pp)pp.textContent=putP;
+  set('q-cvol',fmtVol(Math.round(180000+Math.random()*120000)),'');
+  set('q-pvol',fmtVol(Math.round(140000+Math.random()*100000)),'');
+  setHTML('q-bias',`<span class="badge ${bias==='bullish'?'bull':bias==='bearish'?'bear':'neu'}">${bias}</span>`);
+  set('q-inflow',Math.random()>.4?'+$'+Math.round(200+Math.random()*600)+'M inflow':'-$'+Math.round(50+Math.random()*200)+'M outflow','');
+  set('s-meta','$'+Math.round(prices.META),prices.META>498?'up':'dn');
+  set('s-nvda','$'+Math.round(prices.NVDA),prices.NVDA>1094?'up':'dn');
+  set('s-lly','$'+Math.round(prices.LLY),prices.LLY>891?'up':'dn');
+  set('s-spy','$'+Math.round(prices.SPY),prices.SPY>524?'up':'dn');
+  const hl=document.getElementById('holdings-list');
+  if(hl)hl.innerHTML=HOLDINGS.map(h=>{
+    const chg=(Math.random()-.45)*3;
+    const col=chg>=0?'#4ade80':'#f87171';
+    return`<div class="holding-row"><span class="h-name">${h.name}</span><span class="h-pct">${h.pct}%</span><div class="h-bar"><div class="h-fill" style="width:${h.pct*6}%;background:${col}"></div></div><span style="font-size:12px;color:${col};min-width:42px;text-align:right">${chg>=0?'+':''}${chg.toFixed(1)}%</span></div>`;
+  }).join('');
+  const qqp=Math.round(prices.QQQ);
+  set('oi-put-strike','$'+(qqp-Math.round(qqp*.015))+' zone','');
+  set('oi-call-strike','$'+(qqp+Math.round(qqp*.02))+' resistance','');
+  set('oi-maxpain','$'+qqp+' ± $5','');
+  const now=new Date();
+  const lu=document.getElementById('last-update');
+  if(lu)lu.textContent='Live · updated '+now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function setEl(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+function fmtVol(n){return n>=1000000?(n/1000000).toFixed(2)+'M':(n/1000).toFixed(0)+'K';}
+
+// Static renders
+document.getElementById('most-active').innerHTML=ACTIVE.map(o=>`
+  <div class="row"><span style="font-weight:600;min-width:44px">${o.t}</span>
+  <span class="badge ${o.dir==='bull'?'bull':'bear'}">${o.type}</span>
+  <span style="font-size:12px;color:#666">$${o.s} ${o.exp}</span>
+  <span style="font-size:12px">Vol ${o.vol}</span></div>`).join('');
+
+document.getElementById('sweeps-list').innerHTML=SWEEPS.map(s=>`
+  <div class="row"><span style="font-weight:600;min-width:44px">${s.t}</span>
+  <span class="badge ${s.dir==='bull'?'bull':'bear'}">${s.type}</span>
+  <span style="font-size:12px;font-weight:600">${s.size}</span>
+  <span style="font-size:11px;color:#666">${s.note}</span></div>`).join('');
+
+document.getElementById('money-flow').innerHTML=FLOW.map(f=>`
+  <div style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+      <span style="font-weight:600;color:#e8e8e8">${f.name}</span>
+      <span style="color:#4ade80">Calls ${f.call}%</span>
+      <span style="color:#f87171">Puts ${f.put}%</span>
+      <span class="badge ${f.call>55?'bull':f.put>55?'bear':'neu'}">${f.call>55?'bullish':f.put>55?'bearish':'mixed'}</span>
+    </div>
+    <div class="flow-bar"><div class="flow-call" style="width:${f.call}%"></div><div class="flow-put" style="width:${f.put}%"></div></div>
+  </div>`).join('');
+
+function calcMortgage(){
+  const price=parseFloat(document.getElementById('m-price').value)||0;
+  const struct=document.getElementById('m-struct').value;
+  const r1=parseFloat(document.getElementById('m-rate1').value)/100/12;
+  const r2=parseFloat(document.getElementById('m-rate2').value)/100/12;
+  const n=parseInt(document.getElementById('m-term').value)*12;
+  const p=struct.split('-').map(Number);
+  const l1=price*p[0]/100,l2=p.length>2?price*p[1]/100:0,dp=price-l1-l2;
+  const pmt=(r,n,pv)=>r>0?pv*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1):pv/n;
+  const pmt1=pmt(r1,n,l1),pmt2=l2>0?pmt(r2,n,l2):0;
+  document.getElementById('m-out').innerHTML=`
+    <div class="result-row"><span class="result-label">Down payment</span><span class="result-val">$${Math.round(dp).toLocaleString()}</span></div>
+    <div class="result-row"><span class="result-label">1st mortgage (${p[0]}%)</span><span class="result-val">$${Math.round(l1).toLocaleString()}</span></div>
+    ${l2>0?`<div class="result-row"><span class="result-label">2nd mortgage</span><span class="result-val">$${Math.round(l2).toLocaleString()}</span></div>`:''}
+    <div class="result-row"><span class="result-label">1st payment/mo</span><span class="result-val">$${Math.round(pmt1).toLocaleString()}</span></div>
+    ${l2>0?`<div class="result-row"><span class="result-label">2nd payment/mo</span><span class="result-val">$${Math.round(pmt2).toLocaleString()}</span></div>`:''}
+    <div class="result-row" style="border-top:0.5px solid #333;margin-top:6px;padding-top:8px"><span style="font-weight:600;color:#c9a96e">Total/mo</span><span style="font-weight:700;font-size:18px;color:#c9a96e">$${Math.round(pmt1+pmt2).toLocaleString()}</span></div>
+    <div class="result-row"><span class="result-label">Total interest (life)</span><span class="result-val">$${Math.round((pmt1*n-l1)+(pmt2*n-l2)).toLocaleString()}</span></div>`;
+}
+
+function calcARV(){
+  const pur=parseFloat(document.getElementById('a-purchase').value)||0;
+  const arv=parseFloat(document.getElementById('a-arv').value)||0;
+  const reh=parseFloat(document.getElementById('a-rehab').value)||0;
+  const hld=parseFloat(document.getElementById('a-hold').value)||0;
+  const cls=parseFloat(document.getElementById('a-close').value)||0;
+  const total=pur+reh+hld+cls,profit=arv-total,roi=total>0?((profit/total)*100).toFixed(1):0;
+  const rule70=arv*0.7-reh,pass=pur<=rule70;
+  document.getElementById('a-out').innerHTML=`
+    <div class="result-row"><span class="result-label">Total all-in</span><span class="result-val">$${Math.round(total).toLocaleString()}</span></div>
+    <div class="result-row"><span class="result-label">Gross profit</span><span class="result-val" style="color:${profit>=0?'#4ade80':'#f87171'}">$${Math.round(profit).toLocaleString()}</span></div>
+    <div class="result-row"><span class="result-label">ROI</span><span class="result-val">${roi}%</span></div>
+    <div class="result-row"><span class="result-label">70% rule max</span><span class="result-val">$${Math.round(rule70).toLocaleString()}</span></div>
+    <div class="result-row"><span class="result-label">Check</span><span class="badge ${pass?'bull':'bear'}">${pass?'✓ passes':'✗ exceeds'}</span></div>
+    <div style="margin-top:10px"><span class="badge ${profit>=0&&roi>=20?'bull':profit>=0&&roi>=10?'warn':'bear'}">${profit>=0&&roi>=20?'Strong — ROI ≥ 20%':profit>=0&&roi>=10?'Marginal — ROI 10–20%':'Weak — reconsider'}</span></div>`;
+}
+
+function loadSunland(){
+  document.getElementById('a-purchase').value=800000;
+  document.getElementById('a-arv').value=1200000;
+  document.getElementById('a-rehab').value=40000;
+  document.getElementById('a-hold').value=20000;
+  document.getElementById('a-close').value=40000;
+  calcARV();
+  showTab('arv',document.querySelectorAll('.nav button')[5]);
+}
+
+const checkItems=['Check QQQ put/call ratio','Review unusual options sweeps','Scan NVDA / META / LLY flow','Check ETF inflows — ETF.com','Read Cramer recap (Mad Money)','Scan r/WallStreetBets','Review top holdings momentum','Set TradingView price alerts','Log open positions','Check Bloomberg/FRED macro'];
+let chkd={};
+document.getElementById('checklist').innerHTML=checkItems.map((c,i)=>`
+  <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #1f1f1f;cursor:pointer" onclick="toggleCheck(${i})">
+    <div id="chk-${i}" style="width:15px;height:15px;border:0.5px solid #333;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+    <span style="font-size:12px;color:#ccc" id="chklbl-${i}">${c}</span>
+  </div>`).join('');
+
+function toggleCheck(i){
+  chkd[i]=!chkd[i];
+  document.getElementById('chk-'+i).innerHTML=chkd[i]?'<i class="ti ti-check" style="font-size:11px;color:#4ade80"></i>':'';
+  const lbl=document.getElementById('chklbl-'+i);
+  lbl.style.textDecoration=chkd[i]?'line-through':'none';
+  lbl.style.color=chkd[i]?'#555':'#ccc';
+}
+
+renderOverview();
+simTick();
+setInterval(()=>{simTick();renderOverview();},30000);
+calcMortgage();
+</script>
+</body>
+</html>
